@@ -6,6 +6,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { CfnAccessPoint as s3ObjectAccessPoint } from 'aws-cdk-lib/aws-s3objectlambda';
 import { CfnAccessPoint as s3AccessPoint } from 'aws-cdk-lib/aws-s3';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { Tracing } from 'aws-cdk-lib/aws-lambda';
 
 export class CdkS3ObjectLambdaStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -22,7 +23,8 @@ export class CdkS3ObjectLambdaStack extends Stack {
       handler: "handler",
       memorySize: 256,
       retryAttempts: 0,
-      timeout: Duration.seconds(5)
+      timeout: Duration.seconds(5),
+      tracing: Tracing.ACTIVE
     });
 
     convertLambda.addToRolePolicy(new PolicyStatement({
