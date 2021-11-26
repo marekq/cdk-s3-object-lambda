@@ -1,10 +1,11 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
+import { Duration, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { RemovalPolicy } from 'aws-cdk-lib';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { CfnAccessPoint as s3ObjectAccessPoint } from 'aws-cdk-lib/aws-s3objectlambda';
 import { CfnAccessPoint as s3AccessPoint } from 'aws-cdk-lib/aws-s3';
+import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 export class CdkS3ObjectLambdaStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -16,27 +17,32 @@ export class CdkS3ObjectLambdaStack extends Stack {
       removalPolicy: RemovalPolicy.DESTROY
     });
 
-    const ConvertLambda = new NodejsFunction(this, "S3ObjectLambda", {
+    const convertLambda = new NodejsFunction(this, "S3ObjectLambda", {
       entry: "./src/lambda/index.ts",
       handler: "handler",
-      environment: {
-        BUCKET_NAME: bucket.bucketName
-      }
+      memorySize: 256,
+      retryAttempts: 0,
+      timeout: Duration.seconds(5)
     });
 
-    const accesspoint = new s3AccessPoint(this, "AccessPoint", {
+    convertLambda.addToRolePolicy(new PolicyStatement({
+      actions: ["s3-object-lambda:WriteGetObjectResponse"],
+      resources: ["*"]
+    }));
+    
+    const s3AP = new s3AccessPoint(this, "AccessPoint", {
       bucket: bucket.bucketName
     });
 
-    const AccessPoint = new s3ObjectAccessPoint(this, 'MyCfnAccessPoint', {
+    const objectAP = new s3ObjectAccessPoint(this, 'MyCfnAccessPoint', {
       objectLambdaConfiguration: {
-        supportingAccessPoint: accesspoint.attrArn,   
+        supportingAccessPoint: s3AP.attrArn,   
         cloudWatchMetricsEnabled: true,
         transformationConfigurations: [{
           actions: ["GetObject"],
           contentTransformation: {
             AwsLambda: {
-              FunctionArn: ConvertLambda.functionArn,
+              FunctionArn: convertLambda.functionArn,
               FunctionPayload: "{}"
             }
           }    
