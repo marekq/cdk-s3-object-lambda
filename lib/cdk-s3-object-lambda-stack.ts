@@ -1,4 +1,4 @@
-import { Duration, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnOutput, Duration, Stack, StackProps, Fn } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { RemovalPolicy } from 'aws-cdk-lib';
@@ -7,6 +7,7 @@ import { CfnAccessPoint as s3ObjectAccessPoint } from 'aws-cdk-lib/aws-s3objectl
 import { CfnAccessPoint as s3AccessPoint } from 'aws-cdk-lib/aws-s3';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Tracing } from 'aws-cdk-lib/aws-lambda';
+import { writeFileSync } from 'fs';
 
 export class CdkS3ObjectLambdaStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -28,8 +29,8 @@ export class CdkS3ObjectLambdaStack extends Stack {
     });
 
     convertLambda.addToRolePolicy(new PolicyStatement({
-      actions: ["s3-object-lambda:WriteGetObjectResponse"],
-      resources: ["*"]
+      actions: [ "s3-object-lambda:WriteGetObjectResponse" ],
+      resources: [bucket.bucketArn]
     }));
     
     const s3AP = new s3AccessPoint(this, "AccessPoint", {
@@ -51,5 +52,7 @@ export class CdkS3ObjectLambdaStack extends Stack {
         }]
       }
     });
+    
+    new CfnOutput(this, "AccessPointArn", { value: objectAP.attrArn ?? 'error' });
   }
 }

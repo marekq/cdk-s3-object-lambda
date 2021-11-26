@@ -17,7 +17,7 @@ exports.handler = async function (event: any, context: any) {
     });
 
     await s3client.writeGetObjectResponse({
-        Body: JSON.stringify("hello from object lambda"),
+        Body: JSON.stringify(object),
         RequestRoute: requestRoute,
         RequestToken: outputToken,
       }).promise();
