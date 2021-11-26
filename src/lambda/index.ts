@@ -1,5 +1,6 @@
 import { S3 } from "aws-sdk";
 import axios from "axios";
+import YAML from "json-to-pretty-yaml";
 
 // Setup S3 client
 const s3client = new S3({region: process.env.AWS_REGION});
@@ -20,9 +21,13 @@ exports.handler = async function (event: any, context: any) {
         url: inputS3Url
     });
 
+    // Convert JSON to YAML
+    const convertObject = YAML.stringify(object.data);
+    console.log(convertObject);
+
     // Convert to uppercase, return file to caller
     await s3client.writeGetObjectResponse({
-        Body: object.data.toUpperCase(),
+        Body: convertObject,
         RequestRoute: requestRoute,
         RequestToken: outputToken,
       }).promise();

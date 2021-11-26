@@ -45,7 +45,6 @@ export class CdkS3ObjectLambdaStack extends Stack {
           contentTransformation: {
             AwsLambda: {
               FunctionArn: convertLambda.functionArn,
-              FunctionPayload: "{}"
             }
           }    
         }]
@@ -59,6 +58,6 @@ export class CdkS3ObjectLambdaStack extends Stack {
     }));
 
     // Return S3 Access Point ARN
-    new CfnOutput(this, "AccessPointArn", { value: s3AP.attrArn ?? 'error' });
+    new CfnOutput(this, "S3ObjectAccessPointArn", { value: objectAP.attrArn ?? 'error' });
   }
 }
